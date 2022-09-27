@@ -1,6 +1,6 @@
 import { createRelayer } from "./relayer";
 import { VehickCustomProvider } from "@vehick-network/core/out";
-import { transactionRelayer } from "./transaction";
+import { buildRelayedTransaction } from "./transaction";
 import { UserSigner } from "@elrondnetwork/erdjs-walletcore/out";
 import {
   Account,
@@ -9,7 +9,9 @@ import {
   TransactionWatcher,
 } from "@elrondnetwork/erdjs/out";
 import NodeCache from "node-cache";
+import helmet from "helmet";
 const express = require("express");
+const cors = require("cors");
 const cache = new NodeCache();
 const NONCE = 1;
 const app = express();
@@ -29,38 +31,38 @@ const init = async () => {
 };
 init();
 
+app.use(helmet);
+app.use(cors);
 app.use(express.json());
 // define a route handler for the default home page
 app.get("/", (_req: any, res: any) => {
-  res.send("Hello world!");
+  res.send("Welcome to Vehick Network API");
 });
 
 app.post("/post", async (_req: any, res: any) => {
-  if (Transaction.fromPlainObject(_req.body)) {
-    let transaction = Transaction.fromPlainObject(_req.body);
-    let cachedNonce: number | undefined = cache.get(NONCE);
+  let transaction = Transaction.fromPlainObject(_req.body);
+  let cachedNonce: number | undefined = cache.get(NONCE);
 
-    let cachedCopy = cachedNonce;
-    cache.set(NONCE, cachedCopy! + NONCE);
-    let txHash = await transactionRelayer(
-      relayer,
-      cachedNonce!,
-      networkProvider,
-      transaction
-    );
+  let cachedCopy = cachedNonce;
+  cache.set(NONCE, cachedCopy! + NONCE);
+  let txHash = await buildRelayedTransaction(
+    relayer,
+    cachedNonce!,
+    networkProvider,
+    transaction
+  );
 
-    let transactionOnNetwork = await new TransactionWatcher(
-      networkProvider
-    ).awaitCompleted(txHash);
+  let transactionOnNetwork = await new TransactionWatcher(
+    networkProvider
+  ).awaitCompleted(txHash);
 
-    let status = await networkProvider.getTransactionStatus(
-      txHash.getHash().toString()
-    );
-    let logs: ITransactionLogs;
-    logs = transactionOnNetwork.logs;
-    console.log(logs, status);
-    res.send(status);
-  }
+  let status = await networkProvider.getTransactionStatus(
+    txHash.getHash().toString()
+  );
+  let logs: ITransactionLogs;
+  logs = transactionOnNetwork.logs;
+  console.log(logs, status);
+  res.send(status);
 });
 
 // start the Express server
