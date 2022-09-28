@@ -9,7 +9,7 @@ import {
   TransactionWatcher,
 } from "@elrondnetwork/erdjs/out";
 import NodeCache from "node-cache";
-import helmet from "helmet";
+const helmet = require("helmet");
 const express = require("express");
 const cors = require("cors");
 const cache = new NodeCache();
@@ -31,8 +31,8 @@ const init = async () => {
 };
 init();
 
-app.use(helmet);
-app.use(cors);
+app.use(helmet());
+app.use(cors());
 app.use(express.json());
 // define a route handler for the default home page
 app.get("/", (_req: any, res: any) => {
@@ -41,6 +41,7 @@ app.get("/", (_req: any, res: any) => {
 
 app.post("/post", async (_req: any, res: any) => {
   let transaction = Transaction.fromPlainObject(_req.body);
+  let size = Buffer.byteLength(JSON.stringify(_req.body));
   let cachedNonce: number | undefined = cache.get(NONCE);
 
   let cachedCopy = cachedNonce;
@@ -48,6 +49,7 @@ app.post("/post", async (_req: any, res: any) => {
   let txHash = await buildRelayedTransaction(
     relayer,
     cachedNonce!,
+    size,
     networkProvider,
     transaction
   );

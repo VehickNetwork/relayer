@@ -3,7 +3,7 @@ import { VehickCustomProvider } from "@vehick-network/core/out";
 import { Account } from "@elrondnetwork/erdjs/out";
 import * as dotenv from "dotenv";
 import { genereateSecretKey } from "./genereateSecretKey";
-
+dotenv.config();
 export const createRelayer = async (
   networkProvider: VehickCustomProvider
 ): Promise<{

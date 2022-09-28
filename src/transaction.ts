@@ -12,14 +12,14 @@ export const buildRelayedTransaction = async (
     account: Account;
   },
   cachedNonce: number,
+  size: number,
   networkProvider: VehickCustomProvider,
   transaction: Transaction
 ) => {
   const networkConfig = await networkProvider.getNetworkConfig();
 
   const estimatedGasLimit =
-    networkConfig.MinGasLimit +
-    networkConfig.GasPerDataByte * transaction.getData().toString().length * 60;
+    networkConfig.MinGasLimit + networkConfig.GasPerDataByte * size * 10;
 
   let relayedTxBuilder = new RelayedTransactionV2Builder();
 
